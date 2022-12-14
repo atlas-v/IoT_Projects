@@ -51,7 +51,6 @@ void initWiFi()
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
     delay(500);
-    WiFi.begin(ssid,password);
     g_OLED.setCursor(0, g_lineHeight);
     g_OLED.print("Attempting...");
     g_OLED.setCursor(0, g_lineHeight * 2);

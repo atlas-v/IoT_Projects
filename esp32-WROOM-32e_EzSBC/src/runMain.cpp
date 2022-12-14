@@ -50,6 +50,8 @@ void wifiSetup() {
   WiFi.mode(WIFI_STA);
   // Attempt a login on specified network
   WiFi.begin(ssid, password);
+  // fist connect delay
+  delay(1000);
   Serial.println("\nConnecting");
 
   while(WiFi.status() != WL_CONNECTED){
