@@ -155,7 +155,7 @@ void loop() {
     digitalWrite(LED_BUILTIN, 1);
     // increment
     ++runCounter;
-    // Serial print local time
+    // Display local time
     printLocalTime();
   }
 }
