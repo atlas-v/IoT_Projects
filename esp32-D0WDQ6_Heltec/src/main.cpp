@@ -65,7 +65,9 @@ void setup() {
   g_OLED.begin();
   g_OLED.clear();
   // set font type and size
-  g_OLED.setFont(u8g2_font_profont10_tf);
+  // font size 10
+  // mf -- Monospace, Full glyph support [256]
+  g_OLED.setFont(u8g2_font_profont10_mf);
 
   g_lineHeight = g_OLED.getFontAscent() - g_OLED.getFontDescent();
 
