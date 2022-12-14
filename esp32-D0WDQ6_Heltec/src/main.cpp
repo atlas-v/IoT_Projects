@@ -33,10 +33,7 @@ int runCounter = 0;
 const char* ssid = "JRGuestWireless";
 const char* password = "jrwelcomesu";
 
-// Init first millisecond reading
-unsigned long previousMillis = 0;
-// Timeout set == 3s
-unsigned long interval = 3000;
+
 
 
 //-----------------------------------------------------------------------------
@@ -96,17 +93,18 @@ void setup() {
 //-----------------------------------------------------------------------------
 // Execute Loop
 void loop() {
-  unsigned long currentMillis = millis();
-  
-  // if WiFi is down, try reconnecting every CHECK_WIFI_TIME seconds
-  if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >=interval)) 
+  // if WiFi is down, try reconnecting
+  if ((WiFi.status() != WL_CONNECTED)) 
   {
-    Serial.print(millis());
     Serial.println("Reconnecting to WiFi...");
     // call the reconnect func.
     WiFi.disconnect();
     WiFi.reconnect();
-    previousMillis = currentMillis;
+
+    // Write status to buffer
+    g_OLED.clear();
+    g_OLED.print("Not Connected to Network...");
+    g_OLED.sendBuffer();
   }
   // IF connected
   else {
