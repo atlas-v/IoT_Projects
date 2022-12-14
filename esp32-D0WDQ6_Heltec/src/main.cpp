@@ -15,6 +15,7 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <WiFi.h>
+#include <time.h>
 
 // Global Vars
 
@@ -56,6 +57,39 @@ void initWiFi()
 
 
 //-----------------------------------------------------------------------------
+// NTP Func
+const char* ntpServer = "pool.ntp.org";
+// Offset to EST
+const long  gmtOffset_sec = -18000;
+const int   daylightOffset_sec = 3600;
+
+void printLocalTime()
+{
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return;
+  }
+
+  // Return the time value
+  /*
+  %A	returns day of week
+  %B	returns month of year
+  %d	returns day of month
+  %Y	returns year
+  %H	returns hour
+  %M	returns minutes
+  %S	returns seconds
+  */
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+  g_OLED.setCursor(0, g_lineHeight *  5);
+  g_OLED.print(&timeinfo,"%B %d %Y %H:%M:%S");
+}
+//-----------------------------------------------------------------------------
+
+
+
+//-----------------------------------------------------------------------------
 // Init Program
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -85,6 +119,9 @@ void setup() {
   g_OLED.print("IP Address: ");
   g_OLED.setCursor(0, g_lineHeight *  2);
   g_OLED.print(WiFi.localIP());
+
+  // Try to hit the NTP server
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 };
 //-----------------------------------------------------------------------------
 
@@ -112,14 +149,16 @@ void loop() {
     // always set the cursor below IP Address header
     g_OLED.setCursor(0, g_lineHeight *  3);
     g_OLED.print((String)"Wifi Strength: "+WiFi.RSSI()+" dB");
-    g_OLED.setCursor(0, g_lineHeight *  4);
-    g_OLED.print((String)"Cycles: "+runCounter);
     // Blink the on board LED
     digitalWrite(LED_BUILTIN, 0);
     g_OLED.sendBuffer();
     digitalWrite(LED_BUILTIN, 1);
     // increment
     ++runCounter;
+    // Serial print local time
+    printLocalTime();
   }
 }
 //-----------------------------------------------------------------------------
+
+
