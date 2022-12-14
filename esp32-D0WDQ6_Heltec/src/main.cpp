@@ -27,6 +27,7 @@ U8G2_SSD1306_128X64_NONAME_F_SW_I2C g_OLED(U8G2_R0, 15, 4,  16);
 
 // lineHeight
 int g_lineHeight = 0;
+int runCounter = 0;
 
 // Replace with your network credentials (STATION)
 const char* ssid = "JRGuestWireless";
@@ -63,6 +64,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   g_OLED.begin();
   g_OLED.clear();
+  // set font type and size
   g_OLED.setFont(u8g2_font_profont10_tf);
 
   g_lineHeight = g_OLED.getFontAscent() - g_OLED.getFontDescent();
@@ -93,6 +95,7 @@ void setup() {
 // Execute Loop
 void loop() {
   unsigned long currentMillis = millis();
+  
   // if WiFi is down, try reconnecting every CHECK_WIFI_TIME seconds
   if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >=interval)) 
   {
@@ -109,11 +112,14 @@ void loop() {
     // always set the cursor below IP Address header
     g_OLED.setCursor(0, g_lineHeight *  3);
     g_OLED.print((String)"Wifi Strength: "+WiFi.RSSI()+" dB");
+    g_OLED.setCursor(0, g_lineHeight *  4);
+    g_OLED.print((String)"Cycles: "+runCounter);
     // Blink the on board LED
-    digitalWrite(LED_BUILTIN, 1);
-    g_OLED.sendBuffer();
     digitalWrite(LED_BUILTIN, 0);
-    delay(100); 
+    g_OLED.sendBuffer();
+    digitalWrite(LED_BUILTIN, 1);
+    // increment
+    ++runCounter;
   }
 }
 //-----------------------------------------------------------------------------
