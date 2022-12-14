@@ -19,6 +19,9 @@
 
 // Global Vars
 
+// FIRMWARE REV
+const char* _FIRMWARE = "0.0.1";
+
 // See pinout diagram for _v2
 #define OLED_CLOCK  15
 #define OLED_DATA   4
@@ -31,8 +34,8 @@ int g_lineHeight = 0;
 int runCounter = 0;
 
 // Replace with your network credentials (STATION)
-const char* ssid = "JRGuestWireless";
-const char* password = "jrwelcomesu";
+const char* ssid = "HoloNet";
+const char* password = "Coruscant";
 
 
 
@@ -46,9 +49,14 @@ void initWiFi()
   delay(1000);
   Serial.print("\nConnecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.println('.');
-    delay(100);
+    Serial.print('.');
+    delay(500);
     WiFi.begin(ssid,password);
+    g_OLED.setCursor(0, g_lineHeight);
+    g_OLED.print("Attempting...");
+    g_OLED.setCursor(0, g_lineHeight * 2);
+    g_OLED.print("Check Credentials");
+    g_OLED.sendBuffer();
   }
   Serial.println(WiFi.localIP());  
 }
@@ -99,14 +107,18 @@ void setup() {
   // font size 10
   // mf -- Monospace, Full glyph support [256]
   g_OLED.setFont(u8g2_font_profont10_mf);
-
+  // establish line height
   g_lineHeight = g_OLED.getFontAscent() - g_OLED.getFontDescent();
 
+  // boot display
   g_OLED.setCursor(0, g_lineHeight);
-  g_OLED.print("Initialized...");
-
-  g_OLED.setCursor(0, g_lineHeight *  2);
+  g_OLED.print("BOOT");
+  g_OLED.setCursor(0, g_lineHeight * 2);
+  g_OLED.print((String)"Firmware: "+ _FIRMWARE);
   g_OLED.sendBuffer();
+
+  // boot display linger
+  delay(2000);
 
   // Serial stream baud 9600
   Serial.begin(9600);
