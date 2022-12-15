@@ -16,6 +16,7 @@
 !     o NTP
 !     o Buffer writes
 ! - Build internal time reference to do time based calls
+! - Set global margins
 */
 //---------------------------------------------------------------------------//
 
@@ -24,6 +25,7 @@
 #include <U8g2lib.h>
 #include <WiFi.h>
 #include <time.h>
+#include <string.h>
 
 // Global Vars
 
@@ -59,6 +61,9 @@
   int maxLines = 0;
   // max expected lines -- 30 for now
   int line[30];
+  // heap and strength
+  int previousRSSI = 0; 
+  int previousHEAP = 0;
 
   // Replace with your network credentials (STATION)
   const char *ssid = "JRGuestWireless";
@@ -75,7 +80,7 @@
 void cursorInit()
 {
   // establish line height
-  g_lineHeight = g_OLED.getFontAscent() - g_OLED.getFontDescent();
+  g_lineHeight = g_OLED.getMaxCharHeight();
   // Establish lines
   Serial.print((String) "\nOLED height:\t" + g_OLED.getHeight());
   Serial.print((String) "\nLine height:\t" + g_lineHeight);
@@ -86,7 +91,7 @@ void cursorInit()
   for (int i = 0; i <= maxLines; ++i)
   {
     line[i] = i * g_lineHeight;
-    Serial.print((String) "\nArray Value: " + line[i]);
+    Serial.print((String) "\nLine "+i+" Begin: " + line[i]);
   };
 };
 //-----------------------------------------------------------------------------
@@ -114,6 +119,8 @@ void initWiFi()
   Serial.println(WiFi.localIP());
 }
 //-----------------------------------------------------------------------------
+
+
 
 //-----------------------------------------------------------------------------
 // NTP Func
@@ -145,6 +152,8 @@ void printLocalTime()
   g_OLED.print(&timeinfo, "%B %d %Y %H:%M:%S");
 }
 //-----------------------------------------------------------------------------
+
+
 
 //-----------------------------------------------------------------------------
 // Init Program
@@ -208,6 +217,8 @@ void setup()
 };
 //-----------------------------------------------------------------------------
 
+
+
 //-----------------------------------------------------------------------------
 // Execute Loop
 void loop()
@@ -229,20 +240,56 @@ void loop()
   else
   {
 
+    // Establish CURRENT data references
+    int currentRSSI = WiFi.RSSI();
+    int currentHEAP = esp_get_free_heap_size()/1000;
+    
+
+
+    // EVENT DRIVEN STATS -- 
+    // Only write when we see a change
     // always set the cursor below IP Address header
-    g_OLED.setCursor(0, line[4]);
-    g_OLED.print((String) "Wifi Strength: " + WiFi.RSSI() + " dB");
-    // show free mem
-    g_OLED.setCursor(0, line[5]);
-    g_OLED.print((String) "Free Mem: " + (esp_get_free_heap_size() / 1000) + " kB");
-    // Blink the on board LED
-    digitalWrite(LED_BUILTIN, 0);
-    g_OLED.sendBuffer();
+    if (currentRSSI != previousRSSI) {
+      g_OLED.setCursor(0, line[4]);
+      g_OLED.print((String) "Wifi Strength: " + WiFi.RSSI() + " dB");
+      // Blink the on board LED
+      digitalWrite(LED_BUILTIN, 0);
+      g_OLED.sendBuffer();
+    };
+    if (currentHEAP != previousHEAP) {
+      // show free mem
+      g_OLED.setCursor(0, line[5]);
+      g_OLED.print((String) "Free Mem: " + (esp_get_free_heap_size() / 1000) + " kB");
+      // Blink the on board LED
+      digitalWrite(LED_BUILTIN, 0);
+      g_OLED.sendBuffer();
+    };
+    
+
+    // always OFF unless event
     digitalWrite(LED_BUILTIN, 1);
-    // increment
-    ++runCounter;
+    
     // Display local time
     printLocalTime();
+
+
+
+    // running bar
+    if (runCounter > 10000) {
+      runCounter = 0;
+    };
+    // animation test
+    g_OLED.setCursor(10, line[6]);
+    g_OLED.print(runCounter);
+
+
+
+
+    // Establish PREVIOUS data references
+    previousRSSI = currentRSSI; 
+    previousHEAP = currentHEAP;
+    // increment
+    ++runCounter;
   }
 }
 //-----------------------------------------------------------------------------
