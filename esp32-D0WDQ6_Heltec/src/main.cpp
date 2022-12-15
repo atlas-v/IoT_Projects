@@ -13,7 +13,6 @@
 */
 //---------------------------------------------------------------------------//
 
-
 //  Include Libs
 #include <Arduino.h>
 #include <U8g2lib.h>
@@ -23,14 +22,16 @@
 // Global Vars
 
 // FIRMWARE REV
-const char* _FIRMWARE = "0.0.2";
+const char *_FIRMWARE = "0.0.2";
+// RELEASE DATE
+const char *_RELEASE_DATE = "12/15/2022";
 
 // See pinout diagram for _v2
-#define OLED_CLOCK  15
-#define OLED_DATA   4
-#define OLED_RESET  16
+#define OLED_CLOCK 15
+#define OLED_DATA 4
+#define OLED_RESET 16
 // OLED Used
-U8G2_SSD1306_128X64_NONAME_F_SW_I2C g_OLED(U8G2_R0, 15, 4,  16);
+U8G2_SSD1306_128X64_NONAME_F_SW_I2C g_OLED(U8G2_R0, 15, 4, 16);
 
 // init
 int runCounter = 0;
@@ -41,42 +42,35 @@ int maxLines = 0;
 int line[30];
 
 // Replace with your network credentials (STATION)
-const char* ssid = "JRGuestWireless";
-const char* password = "jrwelcomesu";
+const char *ssid = "JRGuestWireless";
+const char *password = "jrwelcomesu";
+
+
+
+
+
 
 //-----------------------------------------------------------------------------
 // cursor Init -- abstraction
-void cursorInit() {
+void cursorInit()
+{
   // establish line height
   g_lineHeight = g_OLED.getFontAscent() - g_OLED.getFontDescent();
   // Establish lines
-  Serial.print((String)"\nOLED height:\t"+ g_OLED.getHeight());
-  Serial.print((String)"\nLine height:\t" + g_lineHeight);
+  Serial.print((String) "\nOLED height:\t" + g_OLED.getHeight());
+  Serial.print((String) "\nLine height:\t" + g_lineHeight);
 
   // max lines
-  maxLines = g_OLED.getHeight()/g_lineHeight;
+  maxLines = g_OLED.getHeight() / g_lineHeight;
   // line array dictated by maxlines
-  
-  
-
-
-  // line objects
-  /*
-  line[1] = 1*g_lineHeight;
-  line[2] = 2*g_lineHeight;
-  line[3] = 3*g_lineHeight;
-  line[4] = 4*g_lineHeight;
-  line[5] = 5*g_lineHeight;
-  line[6] = 6*g_lineHeight;
-  line[7] = 7*g_lineHeight;
-  line[8] = 8*g_lineHeight;
-  */
-  
-  for (int i = 0; i <= maxLines; ++i) {
-    line[i] = i*g_lineHeight;
-    Serial.print((String)"\nArray Value: "+ line[i]);
+  for (int i = 0; i <= maxLines; ++i)
+  {
+    line[i] = i * g_lineHeight;
+    Serial.print((String) "\nArray Value: " + line[i]);
   };
 };
+//-----------------------------------------------------------------------------
+
 
 
 //-----------------------------------------------------------------------------
@@ -87,7 +81,8 @@ void initWiFi()
   WiFi.begin(ssid, password);
   delay(1000);
   Serial.print("\nConnecting to WiFi ..");
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     Serial.print('.');
     delay(500);
     g_OLED.setCursor(0, line[1]);
@@ -96,23 +91,22 @@ void initWiFi()
     g_OLED.print("Check Credentials");
     g_OLED.sendBuffer();
   }
-  Serial.println(WiFi.localIP());  
+  Serial.println(WiFi.localIP());
 }
 //-----------------------------------------------------------------------------
 
-
-
 //-----------------------------------------------------------------------------
 // NTP Func
-const char* ntpServer = "pool.ntp.org";
+const char *ntpServer = "pool.ntp.org";
 // Offset to EST
-const long  gmtOffset_sec = -18000;
-const int   daylightOffset_sec = 3600;
+const long gmtOffset_sec = -18000;
+const int daylightOffset_sec = 3600;
 
 void printLocalTime()
 {
   struct tm timeinfo;
-  if(!getLocalTime(&timeinfo)){
+  if (!getLocalTime(&timeinfo))
+  {
     Serial.println("Failed to obtain time");
     return;
   }
@@ -128,15 +122,14 @@ void printLocalTime()
   %S	returns seconds
   */
   g_OLED.setCursor(0, line[2]);
-  g_OLED.print(&timeinfo,"%B %d %Y %H:%M:%S");
+  g_OLED.print(&timeinfo, "%B %d %Y %H:%M:%S");
 }
 //-----------------------------------------------------------------------------
 
-
-
 //-----------------------------------------------------------------------------
 // Init Program
-void setup() {
+void setup()
+{
   // set onboard LED to writeable
   pinMode(LED_BUILTIN, OUTPUT);
   // call OLED object -- init
@@ -152,25 +145,29 @@ void setup() {
   // setup cursor manipulation
   cursorInit();
 
-
   // User message
   g_OLED.clear();
-  g_OLED.setCursor(15, line[1]);
-  g_OLED.print("Atlas Technologies");
+  for (int i = 0; i < maxLines;++i) {
+    g_OLED.setCursor(15, line[i+1]);
+    g_OLED.print("Atlas Technologies");
+  }
   g_OLED.sendBuffer();
-  delay(500);
+  
   // boot display
   g_OLED.clear();
   g_OLED.setCursor(0, line[1]);
   g_OLED.print("BOOT");
   g_OLED.sendBuffer();
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; ++i)
+  {
     delay(50);
     g_OLED.print(".");
     g_OLED.sendBuffer();
   };
-  g_OLED.setCursor(0, line[2]);
-  g_OLED.print((String)"Firmware: "+ _FIRMWARE);
+  g_OLED.setCursor(0, line[3]);
+  g_OLED.print((String) "Firmware: " + _FIRMWARE);
+  g_OLED.setCursor(0, line[4]);
+  g_OLED.print((String)"Release: "+_RELEASE_DATE);
   g_OLED.sendBuffer();
   // boot display linger
   delay(1000);
@@ -188,13 +185,12 @@ void setup() {
 };
 //-----------------------------------------------------------------------------
 
-
-
 //-----------------------------------------------------------------------------
 // Execute Loop
-void loop() {
+void loop()
+{
   // if WiFi is down, try reconnecting
-  if ((WiFi.status() != WL_CONNECTED)) 
+  if ((WiFi.status() != WL_CONNECTED))
   {
     Serial.println("Reconnecting to WiFi...");
     // call the reconnect func.
@@ -207,14 +203,15 @@ void loop() {
     g_OLED.sendBuffer();
   }
   // IF connected
-  else {
-        
+  else
+  {
+
     // always set the cursor below IP Address header
     g_OLED.setCursor(0, line[4]);
-    g_OLED.print((String)"Wifi Strength: "+WiFi.RSSI()+" dB");
+    g_OLED.print((String) "Wifi Strength: " + WiFi.RSSI() + " dB");
     // show free mem
     g_OLED.setCursor(0, line[5]);
-    g_OLED.print((String)"Free Mem: "+(esp_get_free_heap_size()/1000)+" kB");
+    g_OLED.print((String) "Free Mem: " + (esp_get_free_heap_size() / 1000) + " kB");
     // Blink the on board LED
     digitalWrite(LED_BUILTIN, 0);
     g_OLED.sendBuffer();
@@ -226,5 +223,3 @@ void loop() {
   }
 }
 //-----------------------------------------------------------------------------
-
-
