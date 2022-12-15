@@ -30,8 +30,23 @@ const char *_RELEASE_DATE = "12/15/2022";
 #define OLED_CLOCK 15
 #define OLED_DATA 4
 #define OLED_RESET 16
+
 // OLED Used
+/*
+Params:
+Rotation -  U8G2_R0 - none 
+            U8G2_R1 - 90
+            U8G2_R2 - 180 
+            U8G2_R3 - 270
+            U8G2_MIRROR - mirrored
+            U8G2_MIRROR_VERTICAL	- vertical mirror
+Clock Pin - 15
+Data Pin - 4
+Reset Pin - 16
+*/
 U8G2_SSD1306_128X64_NONAME_F_SW_I2C g_OLED(U8G2_R0, 15, 4, 16);
+
+
 
 // init
 int runCounter = 0;
