@@ -4,9 +4,12 @@
 ! Author(s):    RMB
 ! Board:        Heltec-Wifi-32_v2
 ! Description:  Basic WiFi connection program for the Heltec-Wifi-32_v2
+! Init Release: 12/14/2022
+! ---------------------------------------------------------------------------
+! Revision History
+! Rev:    Author:   Date:         Comment:
+! 0.0.2   RMB       12/15/2022    Added heap memory monitor and line array
 !
-! Revision:     0.0.1 
-! Release Date: 12/14/2022
 */
 //---------------------------------------------------------------------------//
 
@@ -20,7 +23,7 @@
 // Global Vars
 
 // FIRMWARE REV
-const char* _FIRMWARE = "0.0.1";
+const char* _FIRMWARE = "0.0.2";
 
 // See pinout diagram for _v2
 #define OLED_CLOCK  15
@@ -29,15 +32,51 @@ const char* _FIRMWARE = "0.0.1";
 // OLED Used
 U8G2_SSD1306_128X64_NONAME_F_SW_I2C g_OLED(U8G2_R0, 15, 4,  16);
 
-// lineHeight
-int g_lineHeight = 0;
+// init
 int runCounter = 0;
+int g_lineHeight = 0;
+// init max lines and lines
+int maxLines = 0;
+// max expected lines -- 30 for now
+int line[30];
 
 // Replace with your network credentials (STATION)
-const char* ssid = "HoloNet";
-const char* password = "Coruscant";
+const char* ssid = "JRGuestWireless";
+const char* password = "jrwelcomesu";
+
+//-----------------------------------------------------------------------------
+// cursor Init -- abstraction
+void cursorInit() {
+  // establish line height
+  g_lineHeight = g_OLED.getFontAscent() - g_OLED.getFontDescent();
+  // Establish lines
+  Serial.print((String)"\nOLED height:\t"+ g_OLED.getHeight());
+  Serial.print((String)"\nLine height:\t" + g_lineHeight);
+
+  // max lines
+  maxLines = g_OLED.getHeight()/g_lineHeight;
+  // line array dictated by maxlines
+  
+  
 
 
+  // line objects
+  /*
+  line[1] = 1*g_lineHeight;
+  line[2] = 2*g_lineHeight;
+  line[3] = 3*g_lineHeight;
+  line[4] = 4*g_lineHeight;
+  line[5] = 5*g_lineHeight;
+  line[6] = 6*g_lineHeight;
+  line[7] = 7*g_lineHeight;
+  line[8] = 8*g_lineHeight;
+  */
+  
+  for (int i = 0; i <= maxLines; ++i) {
+    line[i] = i*g_lineHeight;
+    Serial.print((String)"\nArray Value: "+ line[i]);
+  };
+};
 
 
 //-----------------------------------------------------------------------------
@@ -51,9 +90,9 @@ void initWiFi()
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
     delay(500);
-    g_OLED.setCursor(0, g_lineHeight);
+    g_OLED.setCursor(0, line[1]);
     g_OLED.print("Attempting...");
-    g_OLED.setCursor(0, g_lineHeight * 2);
+    g_OLED.setCursor(0, line[2]);
     g_OLED.print("Check Credentials");
     g_OLED.sendBuffer();
   }
@@ -88,8 +127,7 @@ void printLocalTime()
   %M	returns minutes
   %S	returns seconds
   */
-  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
-  g_OLED.setCursor(0, g_lineHeight *  5);
+  g_OLED.setCursor(0, line[2]);
   g_OLED.print(&timeinfo,"%B %d %Y %H:%M:%S");
 }
 //-----------------------------------------------------------------------------
@@ -99,38 +137,52 @@ void printLocalTime()
 //-----------------------------------------------------------------------------
 // Init Program
 void setup() {
+  // set onboard LED to writeable
   pinMode(LED_BUILTIN, OUTPUT);
+  // call OLED object -- init
   g_OLED.begin();
+  // clear OLED
   g_OLED.clear();
+  // Serial stream baud 9600
+  Serial.begin(9600);
   // set font type and size
   // font size 10
   // mf -- Monospace, Full glyph support [256]
   g_OLED.setFont(u8g2_font_profont10_mf);
-  // establish line height
-  g_lineHeight = g_OLED.getFontAscent() - g_OLED.getFontDescent();
+  // setup cursor manipulation
+  cursorInit();
 
+
+  // User message
+  g_OLED.clear();
+  g_OLED.setCursor(15, line[1]);
+  g_OLED.print("Atlas Technologies");
+  g_OLED.sendBuffer();
+  delay(500);
   // boot display
-  g_OLED.setCursor(0, g_lineHeight);
+  g_OLED.clear();
+  g_OLED.setCursor(0, line[1]);
   g_OLED.print("BOOT");
-  g_OLED.setCursor(0, g_lineHeight * 2);
+  g_OLED.sendBuffer();
+  for (int i = 0; i < 3; ++i) {
+    delay(50);
+    g_OLED.print(".");
+    g_OLED.sendBuffer();
+  };
+  g_OLED.setCursor(0, line[2]);
   g_OLED.print((String)"Firmware: "+ _FIRMWARE);
   g_OLED.sendBuffer();
-
   // boot display linger
-  delay(2000);
-
-  // Serial stream baud 9600
-  Serial.begin(9600);
+  delay(1000);
+  // Wifi connection func
   initWiFi();
   Serial.print("RSSI: ");
   Serial.println(WiFi.RSSI());
   // Display net stats on board
   g_OLED.clear();
-  g_OLED.setCursor(0, g_lineHeight);
-  g_OLED.print("IP Address: ");
-  g_OLED.setCursor(0, g_lineHeight *  2);
+  g_OLED.setCursor(0, line[1]);
+  g_OLED.print("IP Addr: ");
   g_OLED.print(WiFi.localIP());
-
   // Try to hit the NTP server
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 };
@@ -158,8 +210,11 @@ void loop() {
   else {
         
     // always set the cursor below IP Address header
-    g_OLED.setCursor(0, g_lineHeight *  3);
+    g_OLED.setCursor(0, line[4]);
     g_OLED.print((String)"Wifi Strength: "+WiFi.RSSI()+" dB");
+    // show free mem
+    g_OLED.setCursor(0, line[5]);
+    g_OLED.print((String)"Free Mem: "+(esp_get_free_heap_size()/1000)+" kB");
     // Blink the on board LED
     digitalWrite(LED_BUILTIN, 0);
     g_OLED.sendBuffer();
