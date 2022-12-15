@@ -10,6 +10,12 @@
 ! Rev:    Author:   Date:         Comment:
 ! 0.0.2   RMB       12/15/2022    Added heap memory monitor and line array
 !
+!
+! To Do:
+! - Work on main loop to avoid slow function calls:
+!     o NTP
+!     o Buffer writes
+! - Build internal time reference to do time based calls
 */
 //---------------------------------------------------------------------------//
 
@@ -166,6 +172,7 @@ void setup()
     g_OLED.print("Atlas Technologies");
   }
   g_OLED.sendBuffer();
+  delay(500);
   
   // boot display
   g_OLED.clear();
@@ -185,6 +192,8 @@ void setup()
   g_OLED.sendBuffer();
   // boot display linger
   delay(1000);
+  g_OLED.clearBuffer();
+
   // Wifi connection func
   initWiFi();
   Serial.print("RSSI: ");
