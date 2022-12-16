@@ -28,6 +28,11 @@
 #include <string.h>
 
 // Global Vars
+  // Replace with your network credentials (STATION)
+  const char *ssid = "HoloNet";
+  const char *password = "Coruscant";
+
+
 
   // FIRMWARE REV
   const char *_FIRMWARE = "0.0.2";
@@ -65,14 +70,21 @@
   int previousRSSI = 0; 
   int previousHEAP = 0;
 
-  // Replace with your network credentials (STATION)
-  const char *ssid = "JRGuestWireless";
-  const char *password = "jrwelcomesu";
-
+  // ERRORS
+  int _ACTIVE_ERROR[10];
+  
+  
 // Global Vars End
 
 
-
+//-----------------------------------------------------------------------------
+// Error setup 
+void errorInit() {
+  // Set number of blinks
+  _ACTIVE_ERROR[1] = 3; // Initial WiFi connection failed. Check Credentials,
+  _ACTIVE_ERROR[2] = 4; // WiFi failed after successful connect, bring within range
+}
+//-----------------------------------------------------------------------------
 
 
 //-----------------------------------------------------------------------------
@@ -109,12 +121,21 @@ void initWiFi()
   while (WiFi.status() != WL_CONNECTED)
   {
     Serial.print('.');
-    delay(500);
+    delay(1000);
     g_OLED.setCursor(0, line[1]);
     g_OLED.print("Attempting...");
     g_OLED.setCursor(0, line[2]);
     g_OLED.print("Check Credentials");
     g_OLED.sendBuffer();
+    // Error Signal -- initial connect failure
+    for (int i = 0; i<_ACTIVE_ERROR[1];++i) {
+      digitalWrite(LED_BUILTIN, 1);
+      delay(250);
+      digitalWrite(LED_BUILTIN,0);
+      delay(250);
+      Serial.print((String)ssid);
+      Serial.print((String)password);
+    }
   }
   Serial.println(WiFi.localIP());
 }
@@ -171,9 +192,11 @@ void setup()
   // font size 10
   // mf -- Monospace, Full glyph support [256]
   g_OLED.setFont(u8g2_font_profont10_mf);
+  // error setup func call
+  errorInit();
   // setup cursor manipulation
   cursorInit();
-
+  
   // User message
   g_OLED.clear();
   for (int i = 0; i < maxLines;++i) {

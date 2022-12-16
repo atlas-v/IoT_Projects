@@ -4,9 +4,15 @@
 
 // Init Global Variables
 
-// the number of the LED pin
+// the number of the onboard LED pin
 const int redPin    = 16; // GPIO16 -- red
 const int greenPin  = 17; // GPIO17 -- green
+
+// rgb pins config
+const int rgb_redPin    = 25;
+const int rgb_greenPin  = 26;
+const int rgb_bluePin   = 27;
+
 
 // setting PWM properties
 const int freq = 5000;
@@ -88,6 +94,10 @@ void setup(){
 
   // start server
   server.begin();
+  // pinmodes
+  pinMode(rgb_redPin,OUTPUT);
+  pinMode(rgb_greenPin,OUTPUT);
+  pinMode(rgb_bluePin,OUTPUT);
 };
 //-----------------------------------------------------------------------------
 
@@ -104,6 +114,9 @@ void loop() {
     // Turn on red led for poor signal
     ledcWrite(ledChannel_0, 150); // red LED -- lower pulse higher brightness
     ledcWrite(ledChannel_1, 255); // green LED -- lower pulse higher brightness
+    digitalWrite(rgb_redPin, LOW);
+    digitalWrite(rgb_bluePin, HIGH);
+    digitalWrite(rgb_greenPin, HIGH);
     // Log the strength
     //Serial.println((String)"Signal Strength: "+WiFi.RSSI() + "dB");
   }
@@ -111,11 +124,17 @@ void loop() {
   else if (WiFi.RSSI() < -51) {
     ledcWrite(ledChannel_0, 100); // red LED -- lower pulse higher brightness
     ledcWrite(ledChannel_1, 100); // green LED -- lower pulse higher brightness
+    digitalWrite(rgb_redPin, HIGH);
+    digitalWrite(rgb_bluePin, LOW);
+    digitalWrite(rgb_greenPin, HIGH);
   }
   // if high strength emit green
   else {
     ledcWrite(ledChannel_0, 255); // red LED -- lower pulse higher brightness
     ledcWrite(ledChannel_1, 150); // green LED -- lower pulse higher brightness
+    digitalWrite(rgb_redPin, HIGH);
+    digitalWrite(rgb_bluePin, HIGH);
+    digitalWrite(rgb_greenPin, LOW);
     // Log the strength
     //Serial.println((String)"Signal Strength: "+WiFi.RSSI() + "dB");
   }
@@ -128,5 +147,8 @@ void loop() {
     client.stop();
     Serial.println('Client Disconnected');
   };
+
+  // exit conditions
+  
 };
 //-----------------------------------------------------------------------------
