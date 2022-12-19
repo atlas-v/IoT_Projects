@@ -1,3 +1,23 @@
+//---------------------------------------------------------------------------//
+/*
+! Program Name: EzSBC
+! Author(s):    RMB
+! Board:        ESP32-WROOM-32E
+! Description:  Wroom script detecting wifi signal strength
+! Init Release: 12/14/2022
+! ---------------------------------------------------------------------------
+! Revision History
+! Rev:    Author:   Date:         Comment:
+! 0.0.1   RMB       12/18/2022    initial
+!
+!
+! To Do:
+! - accelerometer driver
+! - atmospheric sensor driver
+! - integrate 128x128 OLED
+*/
+//---------------------------------------------------------------------------//
+
 // Includes
 #include <WiFi.h>
 
@@ -145,7 +165,7 @@ void loop() {
     client.println(WiFi.RSSI());
     // when session terminates
     client.stop();
-    Serial.println('Client Disconnected');
+    Serial.println("Client Disconnected");
   };
 
   // exit conditions
