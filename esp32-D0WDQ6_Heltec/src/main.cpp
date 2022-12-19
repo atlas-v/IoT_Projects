@@ -17,6 +17,7 @@
 !     o Buffer writes
 ! - Build internal time reference to do time based calls
 ! - Set global margins
+! - Add network memory, loop through known ssids if no connection
 */
 //---------------------------------------------------------------------------//
 
@@ -26,11 +27,13 @@
 #include <WiFi.h>
 #include <time.h>
 #include <string.h>
+#include <asyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
 // Global Vars
   // Replace with your network credentials (STATION)
-  const char *ssid = "HoloNet";
-  const char *password = "Coruscant";
+  const char *ssid = "JRGuestWireless";
+  const char *password = "jrwelcomesu";
 
 
 
@@ -73,13 +76,19 @@
   // ERRORS
   int _ACTIVE_ERROR[10];
   
+  // Asynchronous HTTP server
+  // direct server to port 80
+  AsyncWebServer server(80);
+  // Request handler
+  String request;
   
 // Global Vars End
 
 
 //-----------------------------------------------------------------------------
 // Error setup 
-void errorInit() {
+void errorInit() 
+{
   // Set number of blinks
   _ACTIVE_ERROR[1] = 3; // Initial WiFi connection failed. Check Credentials,
   _ACTIVE_ERROR[2] = 4; // WiFi failed after successful connect, bring within range
@@ -128,14 +137,15 @@ void initWiFi()
     g_OLED.print("Check Credentials");
     g_OLED.sendBuffer();
     // Error Signal -- initial connect failure
-    for (int i = 0; i<_ACTIVE_ERROR[1];++i) {
+    for (int i = 0; i<_ACTIVE_ERROR[1];++i) 
+    {
       digitalWrite(LED_BUILTIN, 1);
       delay(250);
       digitalWrite(LED_BUILTIN,0);
       delay(250);
-      Serial.print((String)ssid);
-      Serial.print((String)password);
     }
+    // Return network attempted
+      Serial.print((String)"\nNetwork Name: "+ssid);
   }
   Serial.println(WiFi.localIP());
 }
@@ -177,6 +187,21 @@ void printLocalTime()
 
 
 //-----------------------------------------------------------------------------
+// Server handle functions -- contain within this block
+void host()
+{
+  // Route for root / web page
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    request->send_P(200, "text/html", "Hello world!!");
+    Serial.print("\nHandled accepted request");
+  });
+}
+//-----------------------------------------------------------------------------
+
+
+
+//-----------------------------------------------------------------------------
 // Init Program
 void setup()
 {
@@ -199,7 +224,8 @@ void setup()
   
   // User message
   g_OLED.clear();
-  for (int i = 0; i < maxLines;++i) {
+  for (int i = 0; i < maxLines;++i) 
+  {
     g_OLED.setCursor(15, line[i+1]);
     g_OLED.print("Atlas Technologies");
   }
@@ -237,6 +263,10 @@ void setup()
   g_OLED.print(WiFi.localIP());
   // Try to hit the NTP server
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+  // Hosted webserver
+  host();
+  server.begin();
 };
 //-----------------------------------------------------------------------------
 
@@ -262,7 +292,6 @@ void loop()
   // IF connected
   else
   {
-
     // Establish CURRENT data references
     int currentRSSI = WiFi.RSSI();
     int currentHEAP = esp_get_free_heap_size()/1000;
@@ -272,14 +301,16 @@ void loop()
     // EVENT DRIVEN STATS -- 
     // Only write when we see a change
     // always set the cursor below IP Address header
-    if (currentRSSI != previousRSSI) {
+    if (currentRSSI != previousRSSI) 
+    {
       g_OLED.setCursor(0, line[4]);
       g_OLED.print((String) "Wifi Strength: " + WiFi.RSSI() + " dB");
       // Blink the on board LED
       digitalWrite(LED_BUILTIN, 0);
       g_OLED.sendBuffer();
     };
-    if (currentHEAP != previousHEAP) {
+    if (currentHEAP != previousHEAP) 
+    {
       // show free mem
       g_OLED.setCursor(0, line[5]);
       g_OLED.print((String) "Free Mem: " + (esp_get_free_heap_size() / 1000) + " kB");
@@ -298,7 +329,8 @@ void loop()
 
 
     // running bar
-    if (runCounter > 10000) {
+    if (runCounter > 10000) 
+    {
       runCounter = 0;
     };
     // animation test
